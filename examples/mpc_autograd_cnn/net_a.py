@@ -30,7 +30,8 @@ def run_mpc_autograd_cnn(
     """
     crypten.init()
 
-    data_alice, data_bob, train_labels = preprocess_mnist(context_manager)
+    data_alice, data_bob, train_labels, test_data, test_labels = \
+        preprocess_mnist(context_manager)
     rank = comm.get().get_rank()
 
     # assumes at least two parties exist
@@ -64,9 +65,12 @@ def run_mpc_autograd_cnn(
     model.train()
     model.encrypt()
 
+    test_enc = crypten.cryptensor(test_data, src=0)
+
     # encrypted training
     train_encrypted(
-        x_reduced, y_reduced, model, num_epochs, learning_rate, batch_size, print_freq
+        x_reduced, y_reduced, model, num_epochs, learning_rate, batch_size, print_freq,
+        test_enc, test_labels
     )
 
 
@@ -78,6 +82,8 @@ def train_encrypted(
     learning_rate,
     batch_size,
     print_freq,
+        x_test,
+        y_test,
 ):
     rank = comm.get().get_rank()
     loss = crypten.nn.CrossEntropyLoss()
@@ -117,15 +123,15 @@ def train_encrypted(
                 print(f"Loss {loss_value.get_plain_text().item():.4f}")
 
         # compute accuracy every epoch
+        output = encrypted_model(x_test)
         pred = output.get_plain_text().argmax(1)
-        correct = pred.eq(y_encrypted[start:end])
+        correct = pred.eq(y_test)
         correct_count = correct.sum(0, keepdim=True).float()
         accuracy = correct_count.mul_(100.0 / output.size(0))
 
-        loss_plaintext = loss_value.get_plain_text().item()
         print(
             f"Epoch {epoch} completed: "
-            f"Loss {loss_plaintext:.4f} Accuracy {accuracy.item():.2f}"
+            f"Accuracy {accuracy.item():.2f} "
         )
 
 
@@ -154,13 +160,17 @@ def preprocess_mnist(context_manager):
     data_train_norm = transforms.functional.normalize(
         mnist_train.data.float(), tensor_mean, tensor_std
     )
+    data_test_norm = transforms.functional.normalize(
+        mnist_test.data.float(), tensor_mean, tensor_std
+    )
 
     # partition features between Alice and Bob
     data_alice = data_train_norm[:, :, :20]
     data_bob = data_train_norm[:, :, 20:]
     train_labels = mnist_train.targets
 
-    return data_alice, data_bob, train_labels
+    return data_alice, data_bob, train_labels, data_test_norm, \
+        mnist_test.targets
 
 
 class CNN(nn.Module):
