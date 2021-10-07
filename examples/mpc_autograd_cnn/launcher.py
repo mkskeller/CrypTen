@@ -87,7 +87,7 @@ def _run_experiment(args):
         level=level,
         format="%(asctime)s - %(process)d - %(name)s - %(levelname)s - %(message)s",
     )
-    from net_a import run_mpc_autograd_cnn
+    from lenet import run_mpc_autograd_cnn
 
     run_mpc_autograd_cnn(
         num_epochs=args.epochs,
