@@ -23,6 +23,7 @@ def run_mpc_autograd_cnn(
     batch_size=5,
     print_freq=5,
     num_samples=100,
+    net='NetA',
 ):
     """
     Args:
@@ -59,7 +60,13 @@ def run_mpc_autograd_cnn(
     y_reduced = train_labels[:num_samples]
 
     # encrypt plaintext model
-    model_plaintext = CNN()
+    if net == 'NetA':
+        model_plaintext = NetA()
+    elif net == 'LeNet':
+        model_plaintext = LeNet()
+    else:
+        print('%s not supported' % net)
+        exit(1)
     dummy_input = torch.empty((1, 1, 28, 28))
     model = crypten.nn.from_pytorch(model_plaintext, dummy_input)
     model.train()
@@ -173,9 +180,9 @@ def preprocess_mnist(context_manager):
         mnist_test.targets
 
 
-class CNN(nn.Module):
+class NetA(nn.Module):
     def __init__(self):
-        super(CNN, self).__init__()
+        super(NetA, self).__init__()
         self.fc1 = nn.Linear(28 ** 2, 128)
         self.fc2 = nn.Linear(128, 128)
         self.fc3 = nn.Linear(128, 10)
@@ -190,3 +197,23 @@ class CNN(nn.Module):
         out = F.softmax(out, dim=1)
         return out
 
+class LeNet(nn.Module):
+    def __init__(self):
+        super(LeNet, self).__init__()
+        self.conv1 = nn.Conv2d(1, 32, 3, 1)
+        self.conv2 = nn.Conv2d(32, 64, 3, 1)
+        self.fc1 = nn.Linear(9216, 128)
+        self.fc2 = nn.Linear(128, 10)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = self.conv2(x)
+        x = F.relu(x)
+        x = F.max_pool2d(x, 2)
+        x = torch.flatten(x, 1)
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = self.fc2(x)
+        output = F.log_softmax(x, dim=1)
+        return output

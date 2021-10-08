@@ -76,6 +76,13 @@ parser.add_argument(
     metavar="N",
     help="num of samples used for training (default: 100)",
 )
+parser.add_argument(
+    "--net",
+    "-net",
+    default='NetA',
+    metavar="net",
+    help="network (default: NetA)",
+)
 
 
 def _run_experiment(args):
@@ -87,7 +94,7 @@ def _run_experiment(args):
         level=level,
         format="%(asctime)s - %(process)d - %(name)s - %(levelname)s - %(message)s",
     )
-    from net_a import run_mpc_autograd_cnn
+    from nets import run_mpc_autograd_cnn
 
     run_mpc_autograd_cnn(
         num_epochs=args.epochs,
@@ -95,6 +102,7 @@ def _run_experiment(args):
         batch_size=args.batch_size,
         print_freq=args.print_freq,
         num_samples=args.num_samples,
+        net=args.net
     )
 
 
