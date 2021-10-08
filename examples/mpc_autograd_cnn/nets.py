@@ -72,7 +72,7 @@ def run_mpc_autograd_cnn(
     model.train()
     model.encrypt()
 
-    test_enc = crypten.cryptensor(test_data, src=0)
+    test_enc = crypten.cryptensor(test_data, src=0).unsqueeze(1)
 
     # encrypted training
     train_encrypted(
