@@ -62,7 +62,7 @@ def run_mpc_autograd_cnn(
     # encrypt plaintext model
     if net == 'NetA':
         model_plaintext = NetA()
-    if net == 'NetD':
+    elif net == 'NetD':
         model_plaintext = NetD()
     elif net == 'LeNet':
         model_plaintext = LeNet()
