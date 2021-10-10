@@ -136,11 +136,14 @@ def train_encrypted(
                       f"{avg_loss}")
 
         # compute accuracy every epoch
-        output = encrypted_model(x_test)
-        pred = output.get_plain_text().argmax(1)
-        correct = pred.eq(y_test)
-        correct_count = correct.sum(0, keepdim=True).float()
-        accuracy = correct_count.mul_(100.0 / output.size(0))
+        ibatch = 1000
+        correct_count = 0
+        for base in range(0, len(x_test), ibatch):
+            output = encrypted_model(x_test[base:base+ibatch])
+            pred = output.get_plain_text().argmax(1)
+            correct = pred.eq(y_test[base:base+ibatch])
+            correct_count += correct.sum(0, keepdim=True).float()
+        accuracy = correct_count.mul_(100.0 / len(x_test))
 
         print(
             f"Epoch {epoch} completed: "
