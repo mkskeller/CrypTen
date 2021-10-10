@@ -105,6 +105,7 @@ def train_encrypted(
         # only print from rank 0 to avoid duplicates for readability
         if rank == 0:
             print(f"Epoch {epoch} in progress:")
+        losses = []
 
         for j in range(0, num_samples, batch_size):
 
@@ -129,7 +130,10 @@ def train_encrypted(
             # log progress
             if j + batch_size - last_progress_logged >= print_freq:
                 last_progress_logged += print_freq
-                print(f"Loss {loss_value.get_plain_text().item():.4f}")
+                losses.append(loss_value.get_plain_text().item())
+                avg_loss = sum(losses) / len(losses)
+                print(f"Loss {loss_value.get_plain_text().item():.4f}/" +
+                      f"{avg_loss}")
 
         # compute accuracy every epoch
         output = encrypted_model(x_test)
