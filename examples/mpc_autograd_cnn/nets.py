@@ -62,6 +62,8 @@ def run_mpc_autograd_cnn(
     # encrypt plaintext model
     if net == 'NetA':
         model_plaintext = NetA()
+    if net == 'NetD':
+        model_plaintext = NetD()
     elif net == 'LeNet':
         model_plaintext = LeNet()
     else:
@@ -196,6 +198,23 @@ class NetA(nn.Module):
         out = self.fc3(out)
         out = F.softmax(out, dim=1)
         return out
+
+class NetD(nn.Module):
+    def __init__(self):
+        super(NetD, self).__init__()
+        self.conv1 = nn.Conv2d(1, 5, 5, stride=2, padding=(2, 2))
+        self.fc1 = nn.Linear(980, 100)
+        self.fc2 = nn.Linear(100, 10)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = torch.flatten(x, 1)
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = self.fc2(x)
+        output = F.log_softmax(x, dim=1)
+        return output
 
 class LeNet(nn.Module):
     def __init__(self):
