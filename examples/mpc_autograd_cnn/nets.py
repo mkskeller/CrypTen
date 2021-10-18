@@ -17,6 +17,7 @@ from torchvision import datasets, transforms
 
 
 def run_mpc_autograd_cnn(
+    args,
     context_manager=None,
     num_epochs=3,
     learning_rate=0.001,
@@ -32,7 +33,7 @@ def run_mpc_autograd_cnn(
     crypten.init()
 
     data_alice, data_bob, train_labels, test_data, test_labels = \
-        preprocess_mnist(context_manager)
+        preprocess_mnist(context_manager, args)
     rank = comm.get().get_rank()
 
     # assumes at least two parties exist
@@ -151,15 +152,19 @@ def train_encrypted(
         )
 
 
-def preprocess_mnist(context_manager):
+def preprocess_mnist(context_manager, args):
     if context_manager is None:
         context_manager = NoopContextManager()
 
     with context_manager:
         # each party gets a unique temp directory
         data_dir = tempfile.gettempdir() + '/%d' % comm.get().get_rank()
-        mnist_train = datasets.MNIST(data_dir, download=True, train=True)
-        mnist_test = datasets.MNIST(data_dir, download=True, train=False)
+        if args.fashion:
+            dataset = datasets.FashionMNIST
+        else:
+            dataset = datasets.MNIST
+        mnist_train = dataset(data_dir, download=True, train=True)
+        mnist_test = dataset(data_dir, download=True, train=False)
 
     # # modify labels so all non-zero digits have class label 1
     # mnist_train.targets[mnist_train.targets != 9] = 1

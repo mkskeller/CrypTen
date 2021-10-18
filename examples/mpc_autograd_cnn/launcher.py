@@ -83,6 +83,13 @@ parser.add_argument(
     metavar="net",
     help="network (default: NetA)",
 )
+parser.add_argument(
+    "--fashion",
+    "-fashion",
+    dest="fashion",
+    action="store_true",
+    help="use Fashion-MNIST (default: original MNIST)",
+)
 
 
 def _run_experiment(args):
@@ -97,12 +104,13 @@ def _run_experiment(args):
     from nets import run_mpc_autograd_cnn
 
     run_mpc_autograd_cnn(
+        args,
         num_epochs=args.epochs,
         learning_rate=args.lr,
         batch_size=args.batch_size,
         print_freq=args.print_freq,
         num_samples=args.num_samples,
-        net=args.net
+        net=args.net,
     )
 
 
