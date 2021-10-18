@@ -157,9 +157,9 @@ def preprocess_mnist(context_manager):
 
     with context_manager:
         # each party gets a unique temp directory
-        with tempfile.TemporaryDirectory() as data_dir:
-            mnist_train = datasets.MNIST(data_dir, download=True, train=True)
-            mnist_test = datasets.MNIST(data_dir, download=True, train=False)
+        data_dir = tempfile.gettempdir() + '/%d' % comm.get().get_rank()
+        mnist_train = datasets.MNIST(data_dir, download=True, train=True)
+        mnist_test = datasets.MNIST(data_dir, download=True, train=False)
 
     # # modify labels so all non-zero digits have class label 1
     # mnist_train.targets[mnist_train.targets != 9] = 1
